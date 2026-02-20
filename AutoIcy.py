@@ -5,6 +5,10 @@ from html.parser import HTMLParser
 import pprint
 import tkinter as tk
 import csv
+from tkinter import simpledialog
+from tkinter import messagebox
+
+
 
 # -------------
 # Globals
@@ -35,6 +39,7 @@ class JSON_Extractor(HTMLParser):
             if (
                 attrs.get("type") == "application/json"
                 and attrs.get("data-target") == "react-app.embeddedData"
+                #and attrs.get("data-target") == "react-partial.embeddedData"
             ):
                 self.capture = True
 
@@ -63,7 +68,11 @@ def get_json():
             return filepath
     return None
 
-def parse_tasks(project_filename, assigned):
+def parse_tasks(project_filename, assigned = None):
+    # first clear out old tasks
+    global tasks
+    tasks = []
+
     with open(project_filename, 'r') as project_file:
         project_json = json.load(project_file)
 
@@ -78,9 +87,20 @@ def parse_tasks(project_filename, assigned):
 
         # extract tasks
         if 'tasks' in project_json:
-            global tasks
+            #global tasks
             for old_task in project_json['tasks']: # pull the tasks out of the json file
-                if old_task["assigned_to"] == assigned: # filter out tasks done by others
+                if assigned: # if there is assignment filtering
+                    if old_task["assigned_to"] == assigned: # filter out tasks done by others
+                        task_number = old_task['ref']
+                        tasks.append(  {
+                            'id'      : task_number,
+                            'assigned': old_task["assigned_to"],
+                            'text'    : old_task["subject"],
+                            'text-k'  : old_task["subject"][:30],  # kurz version is < 30 chars
+                            'date'    : old_task["finished_date"],
+                            'link'    : task_link_prefix + str(task_number)
+                        })
+                else: # if no assigned filtering then just grab everything https://www.youtube.com/watch?v=k1yvvNvlXtg
                     task_number = old_task['ref']
                     tasks.append(  {
                         'id'      : task_number,
@@ -132,24 +152,10 @@ def parse_commits(github_html_filename):
 
 
 
-print ("****")
-#print (get_html())
-#print (get_json())
-#tasks = parse_tasks(get_json(), "rjohn172@asu.edu")
-parse_tasks(get_json(), "rjohn172@asu.edu")
-
-#for task in tasks:
-#    print(task, tasks[task]["assigned"], tasks[task]["text-k"], tasks[task]["date"], tasks[task]["link"])
-
-#for task in tasks:
-#    print(task["assigned"], task["text-k"], task["date"], task["link"])
-
-
-print ("****")
+print ("**** Loading Tasks ****")
+parse_tasks(get_json())
+print ("**** Loading Commits ****")
 parse_commits(get_html())
-#pprint.pprint( parse_commits(get_html()) )
-
-#commits = parse_commits(get_html())
 
 # -------------
 # TK GUI Widgets
@@ -165,6 +171,9 @@ task_picker.grid(row=3, rowspan=3, column=1)
 #
 task_load_button = tk.Button(root, text="Load Task JSON")
 task_load_button.grid(row=2, column=1)
+
+task_filter_button = tk.Button(root, text="Filter tasks")
+task_filter_button.grid(row=0, column=1)
 
 # Commits listbox
 commit_picker = tk.Listbox(root, width=50, selectmode=tk.BROWSE, exportselection=False)
@@ -202,6 +211,25 @@ for index, commit in enumerate(commits):
 # -------------
 # TK functions
 # -------------
+def non_functional():
+    messagebox.showinfo(message = "That button has no function in the current version of this software")
+commit_load_button.config(command=non_functional)
+task_load_button.config(command=non_functional)
+
+def filter_tasks():
+    global tasks
+    user_input = simpledialog.askstring(title="Input Required",
+                                        prompt="What's your name?:")
+    parse_tasks(get_json(),assigned=user_input)
+    print (f"Only showing tasks assigned to username {user_input}")
+    # clear out anything in the task listbox
+    task_picker.delete(0, tk.END)
+    # repopulate tasks from updated task list
+    for index, task in enumerate(tasks):
+        task_picker.insert(index, task["text"])
+task_filter_button.config( command=filter_tasks)
+
+
 def perform_join():
     pass
     # get the selected items and make sure there is a selection
