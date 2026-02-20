@@ -124,9 +124,7 @@ def parse_commits(github_html_filename):
 
         commits_json_str = parser.json_data.strip()
         commits_json_all = json.loads(commits_json_str)
-        #pprint.pprint(commits_json_all)
         # this is the structure to get at the commits. It is messy
-        #commits_json = commits_json_all["payload"]["commitGroups"][0]["commits"]
         commits_json_groups = commits_json_all["payload"]["commitGroups"]
         commits_json = {}
         for commit_group in commits_json_groups:
@@ -218,8 +216,8 @@ task_load_button.config(command=non_functional)
 
 def filter_tasks():
     global tasks
-    user_input = simpledialog.askstring(title="Input Required",
-                                        prompt="What's your name?:")
+    user_input = simpledialog.askstring(title="Filter Tasks",
+                                        prompt="Enter your taiga username (probably your school email):")
     parse_tasks(get_json(),assigned=user_input)
     print (f"Only showing tasks assigned to username {user_input}")
     # clear out anything in the task listbox
@@ -285,7 +283,6 @@ def export_CSV():
 
     #combine csv_sections
     csv_rows = [["Copy the below into your IC Column's A & B",""]] + csv_task_rows + [["Copy the below into your IC Column's E & F",""]] + csv_commit_rows
-    #csv_rows =  csv_task_rows +  csv_commit_rows
 
     pprint.pprint(csv_rows)
 
