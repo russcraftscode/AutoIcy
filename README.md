@@ -2,7 +2,7 @@
 Automated Capstone IC tool
 
 # What it is
-Filling out an IC for every sprint is an annoying and time consuming process. This tool help you identify your contributions as well as automatically extracting the correct links and compiling everything in a format that can be paste directly into your IC form.
+Filling out an IC for every sprint is an annoying and time consuming process. This tool helps you identify your contributions as well as automatically extracting the correct links and compiling everything in a format that can be paste directly into your IC form.
 
 # Instructions
 1. Get the data about your commits
